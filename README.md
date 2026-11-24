@@ -106,14 +106,9 @@ The OpenDeck Flatpak has no access to the audio server by default, so the dial s
 flatpak override --user --socket=pulseaudio me.amankhanna.opendeck
 ```
 
-Optional: if you installed an icon theme in your home folder (e.g. Papirus in
-`~/.local/share/icons`) and want the dials to use it:
-
-```sh
-flatpak override --user --filesystem=xdg-data/icons:ro me.amankhanna.opendeck
-```
-
-System icons and icons of Flatpak apps work without this.
+Icons follow the desktop's icon theme (KDE's, or the GTK `gtk-icon-theme-name` setting),
+then the themes it inherits from, then hicolor, as the taskbar does. The theme is read when
+the plugin starts: restart OpenDeck after changing it.
 
 ## Building
 

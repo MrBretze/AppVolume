@@ -26,10 +26,12 @@ fn print_diagnostics() {
 		Ok(apps) if apps.is_empty() => println!("No application is playing audio."),
 		Ok(apps) => {
 			for app in apps {
-				let icon = if icons::app_icon(&app.icon) == icons::fallback_icon() {
-					"no icon found"
-				} else {
-					"icon found"
+				let icon = match icons::icon_file(&app.icon) {
+					Some(path) => format!("icon {}", path.display()),
+					None if icons::app_icon(&app.icon) == icons::fallback_icon() => {
+						"no icon found".to_owned()
+					}
+					None => "icon found".to_owned(),
 				};
 				println!(
 					"{} [{}]: {:.0}%{}, output {}, {icon} (tried {:?}), reports {:?}",

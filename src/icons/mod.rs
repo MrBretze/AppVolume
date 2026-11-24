@@ -61,9 +61,21 @@ pub fn fallback_icon() -> String {
 		.unwrap_or_default()
 }
 
+/// Icon file chosen for an app, for diagnostics (`--list`).
+#[cfg(target_os = "linux")]
+pub fn icon_file(hint: &IconHint) -> Option<std::path::PathBuf> {
+	linux::find_icon_file(&hint.names)
+}
+
+#[cfg(not(target_os = "linux"))]
+pub fn icon_file(_hint: &IconHint) -> Option<std::path::PathBuf> {
+	None
+}
+
 #[cfg(target_os = "linux")]
 fn find_icon(hint: &IconHint) -> Option<String> {
 	let path = linux::find_icon_file(&hint.names)?;
+	log::debug!("Icon for {:?}: {}", hint.names, path.display());
 	let bytes = std::fs::read(&path).ok()?;
 	let is_svg = path
 		.extension()
@@ -92,6 +104,16 @@ fn find_icon(_hint: &IconHint) -> Option<String> {
 }
 
 fn rasterize_svg(data: &[u8], size: u32) -> Option<RgbaImage> {
+	// .svgz (used by some icon themes): usvg is built without its own gzip support.
+	let unzipped;
+	let data = if data.starts_with(&[0x1f, 0x8b]) {
+		let mut out = Vec::new();
+		std::io::Read::read_to_end(&mut flate2::read::GzDecoder::new(data), &mut out).ok()?;
+		unzipped = out;
+		&unzipped[..]
+	} else {
+		data
+	};
 	let tree = usvg::Tree::from_data(data, &usvg::Options::default()).ok()?;
 	let svg_size = tree.size();
 	let scale = (size as f32 / svg_size.width()).min(size as f32 / svg_size.height());
@@ -158,6 +180,16 @@ fn to_data_url(img: &RgbaImage) -> String {
 #[cfg(test)]
 mod tests {
 	use super::*;
+
+	#[test]
+	fn gzipped_svg_is_rendered() {
+		use std::io::Write;
+		let mut encoder = flate2::write::GzEncoder::new(Vec::new(), flate2::Compression::fast());
+		encoder.write_all(FALLBACK_SVG).unwrap();
+		let svgz = encoder.finish().unwrap();
+		let plain = rasterize_svg(FALLBACK_SVG, ICON_SIZE).unwrap();
+		assert_eq!(rasterize_svg(&svgz, ICON_SIZE).unwrap(), plain);
+	}
 
 	#[test]
 	fn check_frames_render() {
