@@ -2,7 +2,7 @@
 	"Name": "App Volume",
 	"Description": "Per-application volume and output device on Stream Deck+ dials.",
 	"Author": "MrBretzel",
-	"Version": "0.1.0",
+	"Version": "0.1.1",
 	"SDKVersion": 2,
 	"Icon": "icons/plugin",
 	"Category": "App Volume",

@@ -1,6 +1,6 @@
 [package]
 name = "appvolume"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 description = "OpenDeck plugin: per-application volume and output device on Stream Deck+ dials"
 publish = false
