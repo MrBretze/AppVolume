@@ -1,0 +1,57 @@
+{
+	"Name": "App Volume",
+	"Description": "Per-application volume and output device on Stream Deck+ dials.",
+	"Category": "App Volume",
+	"com.mrbretzel.appvolume.dial": {
+		"Name": "App volume",
+		"Tooltip": "Control the volume and output device of one application",
+		"Encoder": {
+			"TriggerDescription": {
+				"Rotate": "Volume (hold for 1% steps) / choose output",
+				"Push": "Next app / apply output; hold: output mode"
+			}
+		}
+	},
+	"Localization": {
+		"system": "System",
+		"muted": "Muted",
+		"not_playing": "Not playing",
+		"no_audio": "No audio",
+		"nothing_playing": "Idle",
+		"no_audio_access": "No audio access",
+		"see_readme": "See README",
+		"not_supported": "Not supported",
+		"on_this_os": "on this OS",
+		"output": "OUTPUT",
+		"no_output": "No output",
+		"current_output": "Current output",
+		"press_to_apply": "Press to apply",
+		"hold_to_go_back": "Hold to go back",
+		"output_changed": "OUTPUT CHANGED"
+	},
+	"PropertyInspector": {
+		"section.dial": "This dial",
+		"section.all": "All dials",
+		"app": "Application",
+		"app.auto": "Automatic (by dial position)",
+		"app.notPlaying": "{name} (not playing)",
+		"click": "Click",
+		"click.nextApp": "Next application",
+		"click.mute": "Mute / unmute",
+		"hint.dial": "Turn: volume. Hold: choose the output device.",
+		"volumeStep": "Volume step",
+		"fineStep": "Fine step (dial held)",
+		"maxVolume": "Maximum volume",
+		"hint.maxVolume": "Above 100 %, the bar turns red.",
+		"longPress": "Long press",
+		"outputTimeout": "Output mode closes after",
+		"language": "Screen language",
+		"language.auto": "Automatic (OpenDeck)",
+		"debug": "Debug logs",
+		"hint.debug": "Writes every dial event to the plugin log, for troubleshooting.",
+		"hint.names": "Application names can be changed in app-names.json, in the plugin folder.",
+		"unit.percent": "%",
+		"unit.ms": "ms",
+		"unit.s": "s"
+	}
+}

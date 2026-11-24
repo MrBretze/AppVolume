@@ -1,0 +1,57 @@
+{
+	"Name": "Volume des applis",
+	"Description": "Volume et sortie audio de chaque application sur les molettes du Stream Deck+.",
+	"Category": "Volume des applis",
+	"com.mrbretzel.appvolume.dial": {
+		"Name": "Volume d'une appli",
+		"Tooltip": "Contrôle le volume et la sortie audio d'une application",
+		"Encoder": {
+			"TriggerDescription": {
+				"Rotate": "Volume (maintenir : pas de 1 %) / choix de la sortie",
+				"Push": "Appli suivante / appliquer la sortie ; maintenir : mode sortie"
+			}
+		}
+	},
+	"Localization": {
+		"system": "Système",
+		"muted": "Muet",
+		"not_playing": "Inactive",
+		"no_audio": "Aucun son",
+		"nothing_playing": "Rien ne joue",
+		"no_audio_access": "Pas d'accès audio",
+		"see_readme": "Voir la doc",
+		"not_supported": "Non supporté",
+		"on_this_os": "sur cet OS",
+		"output": "SORTIE",
+		"no_output": "Aucune sortie",
+		"current_output": "Sortie actuelle",
+		"press_to_apply": "Clic : appliquer",
+		"hold_to_go_back": "Maintenir : retour",
+		"output_changed": "SORTIE CHANGÉE"
+	},
+	"PropertyInspector": {
+		"section.dial": "Cette molette",
+		"section.all": "Toutes les molettes",
+		"app": "Application",
+		"app.auto": "Automatique (selon la position)",
+		"app.notPlaying": "{name} (inactive)",
+		"click": "Clic",
+		"click.nextApp": "Application suivante",
+		"click.mute": "Couper / rétablir le son",
+		"hint.dial": "Tourner : volume. Maintenir : choix de la sortie audio.",
+		"volumeStep": "Pas du volume",
+		"fineStep": "Pas fin (molette enfoncée)",
+		"maxVolume": "Volume maximum",
+		"hint.maxVolume": "Au-dessus de 100 %, la barre passe en rouge.",
+		"longPress": "Appui long",
+		"outputTimeout": "Le mode sortie se ferme après",
+		"language": "Langue de l'écran",
+		"language.auto": "Automatique (OpenDeck)",
+		"debug": "Logs de debug",
+		"hint.debug": "Écrit chaque action de la molette dans le log du plugin, pour le dépannage.",
+		"hint.names": "Les noms des applications se modifient dans app-names.json, dans le dossier du plugin.",
+		"unit.percent": "%",
+		"unit.ms": "ms",
+		"unit.s": "s"
+	}
+}

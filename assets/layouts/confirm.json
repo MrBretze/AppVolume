@@ -1,0 +1,32 @@
+{
+	"$schema": "https://schemas.elgato.com/streamdeck/plugins/layout.json",
+	"id": "com.mrbretzel.appvolume.confirm",
+	"items": [
+		{ "key": "check", "type": "pixmap", "rect": [8, 22, 56, 56] },
+		{
+			"key": "header",
+			"type": "text",
+			"rect": [72, 14, 122, 18],
+			"font": { "size": 12, "weight": 600 },
+			"color": "#81c995",
+			"alignment": "left",
+			"text-overflow": "ellipsis"
+		},
+		{
+			"key": "output_line1",
+			"type": "text",
+			"rect": [72, 36, 122, 22],
+			"font": { "size": 15, "weight": 600 },
+			"alignment": "left",
+			"text-overflow": "ellipsis"
+		},
+		{
+			"key": "output_line2",
+			"type": "text",
+			"rect": [72, 58, 122, 22],
+			"font": { "size": 15, "weight": 600 },
+			"alignment": "left",
+			"text-overflow": "ellipsis"
+		}
+	]
+}

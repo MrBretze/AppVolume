@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>App volume</title>
+<style>
+	:root {
+		--bg: #2d2d2d; --panel: #3a3a3a; --line: #4a4a4a; --text: #d8d8d8; --muted: #9a9a9a;
+		--accent: #4e8cff;
+		color-scheme: dark;
+	}
+	* { box-sizing: border-box; }
+	body { margin: 0; padding: 10px 12px; background: var(--bg); color: var(--text);
+		font: 12px/1.4 system-ui, sans-serif; }
+	h3 { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+		margin: 14px 0 6px; font-weight: 600; }
+	h3:first-child { margin-top: 4px; }
+	input, select { background: #232323; color: var(--text); border: 1px solid var(--line);
+		border-radius: 4px; padding: 3px 5px; font: inherit; }
+	/* Native GTK/WebKit selects ignore the dark colors: draw them entirely in CSS. */
+	select {
+		-webkit-appearance: none; appearance: none;
+		background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%239a9a9a'/></svg>");
+		background-repeat: no-repeat; background-position: right 7px center;
+		padding: 3px 22px 3px 6px; min-height: 24px; cursor: pointer;
+	}
+	select:hover, input:hover { border-color: #666; }
+	input:focus, select:focus { outline: none; border-color: var(--accent); }
+	option { background: #232323; color: var(--text); }
+	input[type=range] { flex: 1; accent-color: var(--accent); padding: 0; border: none; background: none; }
+	input[type=checkbox] { accent-color: var(--accent); margin: 0; }
+	.row { display: flex; gap: 8px; align-items: center; margin: 6px 0; }
+	.row > label:first-child { color: var(--muted); width: 42%; flex-shrink: 0; }
+	.row select { flex: 1; min-width: 0; }
+	.value { width: 58px; text-align: right; font-variant-numeric: tabular-nums; }
+	.hint { color: var(--muted); font-size: 11px; margin: 2px 0 6px; }
+	.hidden { display: none; }
+</style>
+</head>
+<body>
+	<h3 data-i18n="section.dial">This dial</h3>
+	<div class="row">
+		<label for="app" data-i18n="app">Application</label>
+		<select id="app"></select>
+	</div>
+	<div class="row">
+		<label for="click" data-i18n="click">Click</label>
+		<select id="click">
+			<option value="nextApp" data-i18n="click.nextApp">Next application</option>
+			<option value="mute" data-i18n="click.mute">Mute / unmute</option>
+		</select>
+	</div>
+	<p class="hint" data-i18n="hint.dial">Turn: volume. Hold: choose the output device.</p>
+
+	<h3 data-i18n="section.all">All dials</h3>
+	<div class="row">
+		<label for="volumeStep" data-i18n="volumeStep">Volume step</label>
+		<input type="range" id="volumeStep" min="1" max="25" step="1" data-unit="percent" />
+		<span class="value" id="volumeStepValue"></span>
+	</div>
+	<div class="row">
+		<label for="fineStep" data-i18n="fineStep">Fine step</label>
+		<input type="range" id="fineStep" min="1" max="10" step="1" data-unit="percent" />
+		<span class="value" id="fineStepValue"></span>
+	</div>
+	<div id="maxVolumeBlock">
+		<div class="row">
+			<label for="maxVolume" data-i18n="maxVolume">Maximum volume</label>
+			<input type="range" id="maxVolume" min="100" max="150" step="5" data-unit="percent" />
+			<span class="value" id="maxVolumeValue"></span>
+		</div>
+		<p class="hint" data-i18n="hint.maxVolume">Above 100 %, the bar turns red.</p>
+	</div>
+	<div class="row">
+		<label for="longPressMs" data-i18n="longPress">Long press</label>
+		<input type="range" id="longPressMs" min="200" max="2000" step="50" data-unit="ms" />
+		<span class="value" id="longPressMsValue"></span>
+	</div>
+	<div class="row">
+		<label for="outputTimeoutS" data-i18n="outputTimeout">Output mode closes after</label>
+		<input type="range" id="outputTimeoutS" min="5" max="120" step="5" data-unit="s" />
+		<span class="value" id="outputTimeoutSValue"></span>
+	</div>
+	<div class="row">
+		<label for="language" data-i18n="language">Screen language</label>
+		<select id="language">
+			<option value="auto" data-i18n="language.auto">Automatic (OpenDeck)</option>
+			<option value="en">English</option>
+			<option value="fr">Français</option>
+		</select>
+	</div>
+	<div class="row">
+		<label for="debug" data-i18n="debug">Debug logs</label>
+		<input type="checkbox" id="debug" />
+	</div>
+	<p class="hint" data-i18n="hint.debug">Writes every dial event to the plugin log.</p>
+	<p class="hint" data-i18n="hint.names">Application names can be changed in app-names.json.</p>
+
+<script>
+// Defaults must match src/config.rs (Config::default) and src/action.rs (Settings).
+const GLOBAL_DEFAULTS = {
+	volumeStep: 5, fineStep: 1, maxVolume: 150, longPressMs: 500, outputTimeoutS: 30,
+	language: "auto", debug: false,
+};
+const SLIDERS = ["volumeStep", "fineStep", "maxVolume", "longPressMs", "outputTimeoutS"];
+
+let ws = null;
+let context = null;
+let actionUUID = null;
+let hostLanguage = "en";
+let strings = {};
+let dialSettings = {};
+let globalSettings = { ...GLOBAL_DEFAULTS };
+let apps = [];
+
+const $ = (id) => document.getElementById(id);
+
+function t(key, params) {
+	let s = strings[key];
+	if (s === undefined) return null;
+	if (params) s = s.replace(/\{(\w+)\}/g, (m, k) => (k in params ? params[k] : m));
+	return s;
+}
+
+// Texts come from ../lang/<language>.json ("PropertyInspector" section), shared with the plugin.
+// The English text written in the page is the fallback if the file cannot be loaded.
+async function loadLanguage() {
+	const preference = globalSettings.language || "auto";
+	const lang = (preference === "auto" ? hostLanguage : preference).startsWith("fr") ? "fr" : "en";
+	try {
+		const response = await fetch(`../lang/${lang}.json`);
+		strings = (await response.json()).PropertyInspector || {};
+	} catch (e) {
+		strings = {};
+	}
+	document.documentElement.lang = lang;
+	document.querySelectorAll("[data-i18n]").forEach((el) => {
+		el.dataset.fallback ??= el.textContent;
+		el.textContent = t(el.dataset.i18n) ?? el.dataset.fallback;
+	});
+	renderApps();
+	SLIDERS.forEach(showValue);
+}
+
+function showValue(id) {
+	const input = $(id);
+	const unit = t(`unit.${input.dataset.unit}`) ?? (input.dataset.unit === "percent" ? "%" : input.dataset.unit);
+	$(id + "Value").textContent = `${input.value} ${unit}`;
+}
+
+function renderApps() {
+	const select = $("app");
+	select.textContent = "";
+	const add = (value, label) => {
+		const option = document.createElement("option");
+		option.value = value;
+		option.textContent = label;
+		select.appendChild(option);
+	};
+	add("", t("app.auto") ?? "Automatic (by dial position)");
+	for (const app of apps) add(app.key, app.name);
+	// Keep the chosen app selectable while it is not playing.
+	if (dialSettings.app && !apps.some((a) => a.key === dialSettings.app)) {
+		const name = dialSettings.appName || dialSettings.app;
+		add(dialSettings.app, t("app.notPlaying", { name }) ?? `${name} (not playing)`);
+	}
+	select.value = dialSettings.app || "";
+}
+
+function showDialSettings() {
+	renderApps();
+	$("click").value = dialSettings.click || "nextApp";
+}
+
+function showGlobalSettings() {
+	for (const id of SLIDERS) {
+		$(id).value = globalSettings[id];
+		showValue(id);
+	}
+	$("language").value = globalSettings.language;
+	$("debug").checked = !!globalSettings.debug;
+}
+
+function send(message) {
+	if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(message));
+}
+
+function saveDialSettings() {
+	send({ event: "setSettings", context, payload: dialSettings });
+}
+
+function saveGlobalSettings() {
+	send({ event: "setGlobalSettings", context, payload: globalSettings });
+}
+
+$("app").addEventListener("change", () => {
+	const key = $("app").value;
+	const app = apps.find((a) => a.key === key);
+	dialSettings.app = key || null;
+	dialSettings.appName = key ? (app ? app.name : dialSettings.appName) : null;
+	saveDialSettings();
+});
+$("click").addEventListener("change", () => {
+	dialSettings.click = $("click").value;
+	saveDialSettings();
+});
+for (const id of SLIDERS) {
+	$(id).addEventListener("input", () => showValue(id));
+	$(id).addEventListener("change", () => {
+		globalSettings[id] = Number($(id).value);
+		saveGlobalSettings();
+	});
+}
+$("language").addEventListener("change", () => {
+	globalSettings.language = $("language").value;
+	saveGlobalSettings();
+	loadLanguage();
+});
+$("debug").addEventListener("change", () => {
+	globalSettings.debug = $("debug").checked;
+	saveGlobalSettings();
+});
+
+// Called by OpenDeck (Stream Deck SDK property inspector API).
+function connectElgatoStreamDeckSocket(inPort, inUUID, inRegisterEvent, inInfo, inActionInfo) {
+	context = inUUID;
+	try {
+		const info = JSON.parse(inInfo);
+		hostLanguage = String(info.application.language || "en").toLowerCase();
+	} catch (e) { /* keep English */ }
+	try {
+		const actionInfo = JSON.parse(inActionInfo);
+		actionUUID = actionInfo.action;
+		dialSettings = actionInfo.payload.settings || {};
+	} catch (e) { /* no settings yet */ }
+	showDialSettings();
+	showGlobalSettings();
+	loadLanguage();
+
+	ws = new WebSocket("ws://127.0.0.1:" + inPort);
+	ws.onopen = () => {
+		send({ event: inRegisterEvent, uuid: inUUID });
+		send({ event: "getGlobalSettings", context });
+		send({ event: "sendToPlugin", action: actionUUID, context, payload: { cmd: "getApps" } });
+	};
+	// Apps start and stop playing: keep the list current while the page is open.
+	setInterval(() => send({ event: "sendToPlugin", action: actionUUID, context, payload: { cmd: "getApps" } }), 3000);
+	ws.onmessage = (e) => {
+		const msg = JSON.parse(e.data);
+		if (msg.event === "didReceiveSettings" && msg.payload) {
+			// The plugin saved a new app after a click on the dial.
+			dialSettings = msg.payload.settings || {};
+			showDialSettings();
+		} else if (msg.event === "didReceiveGlobalSettings" && msg.payload) {
+			const previousLanguage = globalSettings.language;
+			globalSettings = { ...GLOBAL_DEFAULTS, ...(msg.payload.settings || {}) };
+			showGlobalSettings();
+			if (globalSettings.language !== previousLanguage) loadLanguage();
+		} else if (msg.event === "sendToPropertyInspector" && msg.payload && msg.payload.event === "appList") {
+			apps = msg.payload.apps || [];
+			renderApps();
+			// No amplification on this system (Windows): hide the maximum volume.
+			$("maxVolumeBlock").classList.toggle("hidden", (msg.payload.backendMaxVolume || 100) <= 100);
+		}
+	};
+}
+</script>
+</body>
+</html>

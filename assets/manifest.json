@@ -1,0 +1,42 @@
+{
+	"Name": "App Volume",
+	"Description": "Per-application volume and output device on Stream Deck+ dials.",
+	"Author": "MrBretzel",
+	"Version": "0.1.0",
+	"SDKVersion": 2,
+	"Icon": "icons/plugin",
+	"Category": "App Volume",
+	"CategoryIcon": "icons/plugin",
+	"OS": [{ "Platform": "linux" }, { "Platform": "windows", "MinimumVersion": "10" }, { "Platform": "mac", "MinimumVersion": "10.15" }],
+	"Software": { "MinimumVersion": "6.0" },
+	"CodePaths": {
+		"x86_64-unknown-linux-gnu": "appvolume-x86_64-unknown-linux-gnu",
+		"aarch64-unknown-linux-gnu": "appvolume-aarch64-unknown-linux-gnu",
+		"x86_64-pc-windows-msvc": "appvolume-x86_64-pc-windows-msvc.exe",
+		"x86_64-apple-darwin": "appvolume-macos",
+		"aarch64-apple-darwin": "appvolume-macos"
+	},
+	"CodePathLin": "appvolume-x86_64-unknown-linux-gnu",
+	"CodePathWin": "appvolume-x86_64-pc-windows-msvc.exe",
+	"CodePathMac": "appvolume-macos",
+	"Actions": [
+		{
+			"UUID": "com.mrbretzel.appvolume.dial",
+			"Name": "App volume",
+			"Icon": "icons/action",
+			"Tooltip": "Control the volume and output device of one application",
+			"Controllers": ["Encoder"],
+			"SupportedInMultiActions": false,
+			"PropertyInspectorPath": "pi/index.html",
+			"States": [{ "Image": "icons/action" }],
+			"Encoder": {
+				"layout": "layouts/volume.json",
+				"Icon": "icons/action",
+				"TriggerDescription": {
+					"Rotate": "Volume (hold for 1% steps) / choose output",
+					"Push": "Next app / apply output; hold: output mode"
+				}
+			}
+		}
+	]
+}

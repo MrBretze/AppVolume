@@ -1,0 +1,29 @@
+[package]
+name = "appvolume"
+version = "0.1.0"
+edition = "2024"
+description = "OpenDeck plugin: per-application volume and output device on Stream Deck+ dials"
+publish = false
+
+[dependencies]
+base64 = "0.23.1"
+dashmap = "6.2.1"
+image = { version = "0.25.10", default-features = false, features = ["png"] }
+log = "0.4.35"
+openaction = "2.8"
+resvg = { version = "0.50.0", default-features = false }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+simplelog = "0.12.2"
+tokio = { version = "1.54.1", features = ["rt-multi-thread", "macros", "time", "sync"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+pulseaudio = "0.3.2"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.62", features = ["Win32_Foundation", "Win32_Media_Audio", "Win32_System_Com", "Win32_System_Com_StructuredStorage", "Win32_System_Variant", "Win32_System_Threading", "Win32_System_WinRT", "Win32_UI_Shell", "Win32_UI_Shell_PropertiesSystem", "Win32_UI_WindowsAndMessaging", "Win32_Graphics_Gdi", "Win32_Devices_FunctionDiscovery", "Win32_Storage_FileSystem"] }
+windows-core = "0.62"
+
+[profile.release]
+strip = true
+lto = true
